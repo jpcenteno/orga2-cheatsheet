@@ -1,0 +1,35 @@
+\documentclass{article}
+
+\usepackage{booktabs}
+
+\begin{document}
+\title{Machete de Orga2}
+\author{Joaqu\'in P. Centeno}
+\maketitle
+
+\section{Registros}
+
+\begin{tabular}{ l l l l l l }
+    \toprule
+    \textbf{8 Bytes} & \textbf{4 Bytes} & \textbf{2 Bytes} & \textbf{1 Byte} & \textbf{ABI C} & Preservado \\
+    \midrule
+    \texttt{rax} & \texttt{eax}  & \texttt{ax}   & \texttt{al}   & Return       &    \\
+    \texttt{rbx} & \texttt{ebx}  & \texttt{bx}   & \texttt{bl}   &              & si \\
+    \texttt{rcx} & \texttt{ecx}  & \texttt{cx}   & \texttt{cl}   & 4th argument &    \\
+    \texttt{rdx} & \texttt{edx}  & \texttt{dx}   & \texttt{dl}   & 3rd argument &    \\
+    \texttt{rsi} & \texttt{esi}  & \texttt{si}   & \texttt{sil}  & 2nd argument &    \\
+    \texttt{rdi} & \texttt{edi}  & \texttt{di}   & \texttt{dil}  & 1st argument &    \\
+    \texttt{rbp} & \texttt{ebp}  & \texttt{bp}   & \texttt{bpl}  & Stack        & si \\
+    \texttt{rsp} & \texttt{esp}  & \texttt{sp}   & \texttt{spl}  & Stack        & si \\
+    \texttt{r8}  & \texttt{r8d}  & \texttt{r8w}  & \texttt{r8b}  & 5th argument &    \\
+    \texttt{r9}  & \texttt{r9d}  & \texttt{r9w}  & \texttt{r9b}  & 6th argument &    \\
+    \texttt{r10} & \texttt{r10d} & \texttt{r10w} & \texttt{r10b} &              &    \\
+    \texttt{r11} & \texttt{r11d} & \texttt{r11w} & \texttt{r11b} &              &    \\
+    \texttt{r12} & \texttt{r12d} & \texttt{r12w} & \texttt{r12b} &              & si \\
+    \texttt{r13} & \texttt{r13d} & \texttt{r13w} & \texttt{r13b} &              & si \\
+    \texttt{r14} & \texttt{r14d} & \texttt{r14w} & \texttt{r14b} &              & si \\
+    \texttt{r15} & \texttt{r15d} & \texttt{r15w} & \texttt{r15b} &              & si \\
+    \bottomrule
+\end{tabular}
+
+\end{document}
