@@ -184,6 +184,79 @@ Para un ciclo \texttt{for n \ldots n} usamos el orden inverso de
         jg .loop
 \end{verbatim}
 
-\end{multicols}
+% ------------------------------------------------------------------------------
+
+\section{Componentes de una direcci\'on lineal.}%
+\label{sec:componentes_de_una_direcci'on_lineal_}
+
+\begin{verbatim}
+#define LIN_IX_DIR(lin)   ((lin >> 22) & 0x3FF)
+#define LIN_IX_TAB(lin)   ((lin >> 12) & 0x3FF)
+#define LIN_OFFSET(lin)   (lin & 0xFFF)
+#define ADDR_PAGE(addr)   (phy & (~0x3FF))
+#define ADDR_OFFSET(addr) (phy & 0x3FF)
+\end{verbatim}
+
+\section{Mapear P\'agina.}%
+\label{sec:mapear_p'agina_}
+
+\begin{verbatim}
+void mmu_mapPage(page_dir_entry_t* cr3,
+                 uint32_t lin,
+                 uint32_t phy,
+                 uint32_t attrs) {
+    uint32_t dir_ix = LIN_IX_DIR(lin);
+    uint32_t tab_ix = LIN_IX_TAB(lin);
+    if (! cr3[dir_ix].p ) {
+        dir[dir_ix].p = 1
+        dir[dir_ix].rw = 1;
+        dir[dir_ix].us = 1;
+        dir[dir_ix].pwt = 0;
+        dir[dir_ix].pcd = 0;
+        dir[dir_ix].a = 0;
+        dir[dir_ix].ign = 0;
+        dir[dir_ix].ps = 0; // 4k
+        dir[dir_ix].g = 0;
+        dir[dir_ix].avl = 0;
+        mmu_table_entry_t* table =
+            mmu_getFreeKernelPage();
+        dir[dir_ix].table_addr = table >> 12;
+        for (i = 0; i < 1024; ++i){
+            table[i].p = 0;
+        }
+    }
+    uint32_t* table = dir[dir_ix] << 12;
+    table[tab_ix] = ADDR_PAGE(phy) | attrs;
+    tlb_flush(); // Borra cache paginacion
+}
+\end{verbatim}
+
+
+% ------------------------------------------------------------------------------
+
+\section{Scheduler}%
+\label{sec:scheduler}
+
+\begin{verbatim}
+offset:   dd 0
+selector: dw 0
+global _isrClock
+_isrClock:
+    pushad
+    call pic_finish
+    call schedNextTask
+    str cx
+    cmp ax, cx
+    je .fin % No puede saltar a la misma xq bussy
+    mov [selector], ax
+    jmp far [offset]
+    % Aca entra al volver a la tarea.
+.fin:
+    popad
+    iret
+\end{verbatim}
+
+
+\end{multicols*}
 
 \end{document}
