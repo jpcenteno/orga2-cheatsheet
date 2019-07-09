@@ -9,9 +9,9 @@
 
 \section{Registros}
 
-\begin{tabular}{ l l l l l l }
+\begin{tabular}{l l l l l l}
     \toprule
-    \textbf{8 Bytes} & \textbf{4 Bytes} & \textbf{2 Bytes} & \textbf{1 Byte} & \textbf{ABI C} & Preservado \\
+    \textbf{8 Bytes} & \textbf{4 Bytes} & \textbf{2 Bytes} & \textbf{1 Byte} & \textbf{ABI C} & \textbf{Preservado} \\
     \midrule
     \texttt{rax} & \texttt{eax}  & \texttt{ax}   & \texttt{al}   & Return       &    \\
     \texttt{rbx} & \texttt{ebx}  & \texttt{bx}   & \texttt{bl}   &              & si \\
@@ -29,6 +29,116 @@
     \texttt{r13} & \texttt{r13d} & \texttt{r13w} & \texttt{r13b} &              & si \\
     \texttt{r14} & \texttt{r14d} & \texttt{r14w} & \texttt{r14b} &              & si \\
     \texttt{r15} & \texttt{r15d} & \texttt{r15w} & \texttt{r15b} &              & si \\
+    \bottomrule
+\end{tabular}
+
+\section{Patrones}
+
+
+\subsection{Ciclo \texttt{while}}
+
+\begin{verbatim}
+        jmp .cond   ; Jump to condition first
+.loop:  ...         ; Execute the content of the loop
+.cond:  cmp ax,1    ; Check the condition (i.e. ax == 1)
+        je .loop    ; Jump to content of the loop if met
+\end{verbatim}
+
+\subsection{Ciclo \texttt{do while}}
+
+Para el ciclo \textbf{do while} sacamos el primer jump a la condicion. No es
+necesaria la etiqueta \texttt{.cond}:
+
+\begin{verbatim}
+.loop:  ...         ; Whatever you wanna do goes here
+        cmp ax,1    ; Check the condition (i.e. ax == 1)
+        je .loop    ; And loop if equal
+\end{verbatim}
+
+\subsection{Ciclo \texttt{for}}
+
+Para un ciclo \texttt{for n...n} usamos el orden inverso de
+\texttt{for(i=0; i < n; ++i)} que equivale a \texttt{for(i=n; 0 < i; --i)}:
+
+\begin{verbatim}
+        mov cx, n   ; cx = n
+        jmp .cond   ; Jump to the condition
+.loop:  ...         ; Execute the content of the loop
+.cond:  cmp cx, 0   ; Check that 0 < cx
+        jg .loop
+\end{verbatim}
+
+\subsection{Hack para cargar valor de un registro en FPU}
+
+No existe forma de cargar un dato a la \textit{FPU} desde de un registro sin
+pasar por la memoria. Para ahorrarnos el \texttt{malloc} podemos escribir en una
+parte no inicializada (parte negativa) del stack.
+
+\begin{verbatim}
+mov [rsp - 4], eax   ; Donde EAX tiene un entero signed
+fild DWORD [rsp - 4] ; Convierte a float y pushea al stack
+\end{verbatim}
+
+
+\section{GDB}
+
+\subsection{imprimir una posici\'on de memoria}
+
+El comando \texttt{x} permite explorar una posicion en memoria. \texttt{n} es
+la cantidad de unidades. \texttt{u} es el tamano en bytes de la unidad y
+\texttt{f} es el formato para expresar la unidad.
+
+\begin{verbatim}
+(gdb) x/nfu <address>
+\end{verbatim}
+
+\begin{tabular}{l l l}
+    \toprule
+    \textbf{unit} & \textbf{Description} & \textbf{\# Bytes} \\
+    \midrule
+    \texttt{b} & \textit{Byte}     & 1\\
+    \texttt{h} & \textit{HalfWord} & 2\\
+    \texttt{w} & \textit{Word}     & 4\\
+    \texttt{g} & \textit{GiantWord}& 8\\
+    \bottomrule
+\end{tabular}
+
+\begin{tabular}{l l}
+    \toprule
+    \textbf{format} & \textbf{Description} \\
+    \midrule
+    \texttt{a} & Pointer \\
+    \texttt{c} & Read as integer, print as character \\
+    \texttt{d} & Integer, signed decimal \\
+    \texttt{f} & Floating point number \\
+    \texttt{o} & Integer, print as octal \\
+    \texttt{s} & Try to treat as C string \\
+    \texttt{t} & Integer, print as binary (t = `two') \\
+    \bottomrule
+\end{tabular}
+
+
+\subsection{watchpoints}
+Poner un watchpoint en una posicion de memoria:
+\begin{verbatim}
+(gdb) watch *0x40a5d8
+\end{verbatim}
+
+\section{SIMD}
+
+\subsection{Empaquetado de datos}
+
+\begin{tabular}{l l l l}
+    \toprule
+    \textbf{Size Dato} & \textbf{nombre C} & \textbf{Nombre INTEL} & \textbf{Cantidad} \\
+    \midrule
+    1 Byte & \texttt{char}   & \texttt{byte}     & 16 \\
+    2 Byte & \texttt{short}  & \texttt{word}     & 8  \\
+    4 Byte & \texttt{int}    & \texttt{Double}   & 4  \\
+    8 Byte & \texttt{long}   & \texttt{quadword} & 2  \\
+    \midrule
+    4 Byte & \texttt{float}  & \texttt{single}   & 4  \\
+    8 Byte & \texttt{double} & \texttt{double}   & 2  \\
     \bottomrule
 \end{tabular}
 
