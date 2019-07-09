@@ -1,0 +1,187 @@
+\documentclass[10pt,landscape]{article}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+% Template clonado de https://wch.github.io/latexsheet/. Licencia 
+% To make this come out properly in landscape mode, do one of the following
+% 1.
+%  pdflatex latexsheet.tex
+%
+% 2.
+%  latex latexsheet.tex
+%  dvips -P pdf  -t landscape latexsheet.dvi
+%  ps2pdf latexsheet.ps
+
+
+% If you're reading this, be prepared for confusion.  Making this was
+% a learning experience for me, and it shows.  Much of the placement
+% was hacked in; if you make it better, let me know...
+
+
+% 2008-04
+% Changed page margin code to use the geometry package. Also added code for
+% conditional page margins, depending on paper size. Thanks to Uwe Ziegenhagen
+% for the suggestions.
+
+% 2006-08
+% Made changes based on suggestions from Gene Cooperman. <gene at ccs.neu.edu>
+
+
+% To Do:
+% \listoffigures \listoftables
+% \setcounter{secnumdepth}{0}
+
+
+% This sets page margins to .5 inch if using letter paper, and to 1cm
+% if using A4 paper. (This probably isn't strictly necessary.)
+% If using another size paper, use default 1cm margins.
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+    { \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+    {\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+        {\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+        {\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+    }
+
+% Turn off header and footer
+\pagestyle{empty}
+ 
+
+% Redefine section commands to use less space
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+% Define BibTeX command
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+
+
+% -----------------------------------------------------------------------
+
+\begin{document}
+
+\raggedright
+\footnotesize
+\begin{multicols*}{3}
+
+
+% multicol parameters
+% These lengths are set only within the two main columns
+%\setlength{\columnseprule}{0.25pt}
+\setlength{\premulticols}{1pt}
+\setlength{\postmulticols}{1pt}
+\setlength{\multicolsep}{1pt}
+\setlength{\columnsep}{2pt}
+
+% Titulo.
+\begin{center}
+    \Large{\textbf{ORGA-II Cheatsheet. \\
+                   2\textsuperscript{do} parcial.} } \\
+\end{center}
+
+% ------------------------------------------------------------------------------
+
+\section{Registros de uso general.}
+
+\begin{tabular}{l l l l l l}
+    \toprule
+    \textbf{4 Bytes} & \textbf{2 Bytes} & \textbf{1 Byte} & \textbf{ABI C} \\
+    \textit{(dword)} & \textit{(word)} & \textit{(byte)} & \\
+    \midrule
+    \texttt{eax} & \texttt{ax} & \texttt{al} & return 1\textsuperscript{ro} \\
+    \texttt{ebx} & \texttt{bx} & \texttt{bl} & preservado \\
+    \texttt{ecx} & \texttt{cx} & \texttt{cl} & --- \\
+    \texttt{edx} & \texttt{dx} & \texttt{dl} & return 2\textsuperscript{do} \\
+    \texttt{esi} & \texttt{si} & \texttt{sil} & preservado \\
+    \texttt{edi} & \texttt{di} & \texttt{dil} & preservado \\
+    \texttt{ebp} & \texttt{bp} & \texttt{bpl} & preservado \\
+    \texttt{esp} & \texttt{sp} & \texttt{spl} & preservado \\
+    \bottomrule
+\end{tabular}
+
+% ------------------------------------------------------------------------------
+
+\section{Orden de parametros PUSHAD}%
+\label{sec:orden_de_parametros_pushad}
+
+La instruccion \texttt{PUSHAD} pushea los registros de uso general en el
+siguiente orden:
+
+\begin{tabular}{l l l l l l}
+    \toprule
+    \textbf{Registro} & \textbf{Offset} \\
+    \midrule
+    \texttt{EAX} & $\mathtt{ESP} +28 $ \\
+    \texttt{ECX} & $\mathtt{ESP} +24 $ \\
+    \texttt{EDX} & $\mathtt{ESP} +20 $ \\
+    \texttt{EBX} & $\mathtt{ESP} +16 $ \\
+    \texttt{ESP} & $\mathtt{ESP} +12 $ \\
+    \texttt{EBP} & $\mathtt{ESP} +8 $ \\
+    \texttt{ESI} & $\mathtt{ESP} +4 $ \\
+    \texttt{EDI} & $\mathtt{ESP} +0 $ \\
+    \bottomrule
+\end{tabular}
+
+% ------------------------------------------------------------------------------
+
+\section{Patrones en Assembler.}
+
+
+\subsection{Ciclo While.}
+
+\begin{verbatim}
+        jmp .cond ; Directo a la guarda
+.loop:  ...       ; Cuerpo del loop
+.cond:  cmp ax,1  ; Guarda (Ej. ax == 1)
+        je .loop  ; Jump al cuerpo del loop.
+\end{verbatim}
+
+\subsection{Ciclo Do While.}
+
+Para el ciclo \textbf{do while} sacamos el primer jump a la condicion. No es
+necesaria la etiqueta \texttt{.cond}:
+
+\begin{verbatim}
+.loop:  ...      ; Cuerpo del loop
+        cmp ax,1 ; Guarda (Ej. ax == 1)
+        je .loop ; Jump al cuerpo del loop.
+\end{verbatim}
+
+\subsection{Ciclo For.}
+
+Para un ciclo \texttt{for n \ldots n} usamos el orden inverso de
+\texttt{for (i=0; i < n; ++i)} que equivale a \texttt{for (i=n; 0 < i; --i)}:
+
+\begin{verbatim}
+        mov cx, n   ; cx = n
+        jmp .cond   ; Jump to the condition
+.loop:  ...         ; Execute the content of the loop
+.cond:  cmp cx, 0   ; Check that 0 < cx
+        jg .loop
+\end{verbatim}
+
+\end{multicols}
+
+\end{document}
