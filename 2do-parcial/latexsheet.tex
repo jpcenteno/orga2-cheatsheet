@@ -391,6 +391,23 @@ void fill_tss(tss* actual) {
 }
 \end{verbatim}
 
+% ------------------------------------------------------------------------------
+
+\section{ISR Teclado}%
+\label{sec:isrkeyboard}
+
+\begin{verbatim}
+_isr33:
+    pushad
+    call pic_finish1
+    in al, 0x60
+    push eax
+    call idt_int_teclado // o lo que haya que hacer
+    pop eax
+    popad
+    iret
+\end{verbatim}
+
 
 \end{multicols*}
 
