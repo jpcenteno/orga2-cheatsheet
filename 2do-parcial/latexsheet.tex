@@ -326,6 +326,72 @@ De no cumplirse el chequeo, se genera un \texttt{\#PF}.
 
 De no cumplirse el chequeo, se genera un \texttt{\#PF}.
 
+% ------------------------------------------------------------------------------
+
+\section{Macros para direcciones}%
+\label{sec:macros}
+
+\begin{verbatim}
+#define PD_PHYS_DIR(cr3) ((pde_t*) (((uint32) cr3) & 0xFFFFF000))
+#define PT_PHYS_ADDR(pde) ((pte_t*) (pde.table_addr << 12))
+#define PAGE_PHYS_ADDR(pte) (pte.page_addr << 12)
+\end{verbatim}
+
+% ------------------------------------------------------------------------------
+
+\section{TSS desc init}%
+\label{sec:tss_gdt}
+
+\begin{verbatim}
+void tss_initGdtEntry(uint32_t ix,
+    tss* base, uint32_t dpl) {
+    gdt[ix].limit_0_15   = TSS_SIZE;
+    gdt[ix].base_0_15    = (uint32) base & 0xFFFF;
+    gdt[ix].base_23_16   = ((uint32) base >> 16) & 0xFF;
+    gdt[ix].type         = 0b1001;
+    gdt[ix].s            = 0x0;
+    gdt[ix].dpl          = dpl;
+    gdt[ix].p            = 0x1;
+    gdt[ix].limit_16_19  = 0x0;
+    gdt[ix].avl          = 0x0;
+    gdt[ix].l            = 0x0;
+    gdt[ix].db           = 0x0;
+    gdt[ix].g            = 0x0;
+    gdt[ix].base_31_24   = ((uint32_t) base >> 24);
+}
+\end{verbatim}
+
+% ------------------------------------------------------------------------------
+
+\section{TSS init}%
+\label{sec:tss}
+
+\begin{verbatim}
+void fill_tss(tss* actual) {
+    actual->eip = TASK_CODE;
+    actual->cr3 = (uint32_t) mmu_initTaskDir();
+    actual->eflags  = 0x00000202;
+    actual->iomap = 0xFFFF;
+    actual->cs = GDT_OFF_CODIGO_USER;
+    actual->gs = GDT_OFF_DATOS_USER;
+    actual->fs = GDT_OFF_DATOS_USER;
+    actual->ds = GDT_OFF_DATOS_USER;
+    actual->es = GDT_OFF_DATOS_USER;
+    actual->ss = GDT_OFF_DATOS_USER;
+    actual->eax = 0x0;
+    actual->ecx = 0x0;
+    actual->edx = 0x0;
+    actual->ebx = 0x0;
+    actual->esi = 0x0;
+    actual->edi = 0x0;
+    actual->esp = TASK_STACK;
+    actual->ebp = TASK_STACK;
+    actual->esp0 = mmu_nextFreeKernelPage() + PAGE_SIZE;
+    actual->ss0  = GDT_OFF_DATOS_KERNEL;
+}
+\end{verbatim}
+
+
 \end{multicols*}
 
 \end{document}
