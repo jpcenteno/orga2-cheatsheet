@@ -99,8 +99,7 @@
 
 % Titulo.
 \begin{center}
-    \Large{\textbf{ORGA-II Cheatsheet. \\
-                   2\textsuperscript{do} parcial.} } \\
+    \Large{\textbf{ORGA-II --- 2\textsuperscript{do} parcial.} } \\
 \end{center}
 
 % ------------------------------------------------------------------------------
@@ -256,6 +255,76 @@ _isrClock:
     iret
 \end{verbatim}
 
+\section{proteccion}%
+\label{sec:proteccion}
+
+\subsection{Chequeos de segmentacion}%
+\label{sub:segmentacion}
+
+\begin{itemize}
+    \item \textbf{DPL} Descriptor Privilege Level. Nivel de privilegio del
+           segmento a ser accedido.
+    \item \textbf{CPL} Current Privilege Level. Es el nivel de privilegio del
+          \texttt{CS} que estoy ejecutando.
+    \item \textbf{RPL} Nivel de privilegio indicado en el selector de segmento.
+    \item \textbf{EPL}
+          $\texttt{EPL} = \texttt{maxNumerico}(\texttt{CPL},\texttt{RPL})$
+\end{itemize}
+Reglas: (Si no se cumplen, tira \texttt{\#GP})
+\begin{itemize}
+    \item Para \textbf{acceder a un segmento de datos} necesitamos $\mathtt{EPL} \leq \texttt{DPL}$.
+    \item Para \textbf{acceder a un segmento de codigo} necesitamos:
+    \begin{itemize}
+        \item Si el segmento es \textbf{non-conforming}, $\texttt{EPL} = \texttt{DPL}$
+        \item Si el segmento es \textbf{conforming}, $\texttt{CPL} \geq \texttt{DPL}$
+    \end{itemize}
+\end{itemize}
+
+\begin{tabular}{l l l l l l}
+    \toprule
+    \textbf{Operacion} & \textbf{Bit S} & \textbf{Datos} & \textbf{Codigo}\\
+    \midrule
+    Leer     & 1 & Siembre      & R habilitado    \\
+    Escribir & 1 & W habilitado & \#GP            \\
+    Ejecutar & 1 & \#GP         & Si (ver reglas) \\
+    \bottomrule
+\end{tabular}
+
+\subsection{chequeos de paginacion}%
+\label{sub:chequeos_de_paginacion}
+
+\begin{itemize}
+    \item Primero chequea el bit presente de la tabla.
+    \item despues chequea el bit P de la pagina.
+    \item Si es operacion de escritura chequea el bit \texttt{R/W}
+    \item Verifica el bit \texttt{U/S}. Si \texttt{US=0}, solo se puede acceder
+          en nivel 0.
+\end{itemize}
+
+De no cumplirse un chequeo de paginacion, se genera un \texttt{\#PF}.
+
+\subsection{Chequeos en interrupciones}%
+\label{sub:chequeos_en_interrupciones}
+
+\begin{itemize}
+    \item Primero se verifica que el descriptor de la \texttt{IDT} tenga su bit
+          \texttt{P=1}.
+    \item Se verifica que $ \texttt{CPL} \leq \texttt{IDT[i].DPL} $. Si la
+          interrupcion es de hardware, los bits de la \texttt{DPL} se ignoran.
+\end{itemize}
+
+De no cumplirse el chequeo, se genera un \texttt{\#PF}.
+
+\subsection{Chequeos al cambiar de tarea}%
+\label{sub:chequeos_al_cambiar_de_tarea}
+
+\begin{itemize}
+    \item Se verifica que tenga el bit \texttt{P=1} en su descriptor de
+          \texttt{tss}.
+    \item Se verifica que tenga el bit \texttt{busy=0} en la \texttt{tss}.
+\end{itemize}
+
+De no cumplirse el chequeo, se genera un \texttt{\#PF}.
 
 \end{multicols*}
 
